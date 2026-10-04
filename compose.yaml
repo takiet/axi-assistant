@@ -16,6 +16,10 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:20080:20080"
+    environment:
+      ORCHESTRATOR_MODEL: ${ORCHESTRATOR_MODEL}
+      ORCHESTRATOR_BASE_URL: ${ORCHESTRATOR_BASE_URL}
+      ORCHESTRATOR_API_KEY: ${ORCHESTRATOR_API_KEY}
     stdin_open: true
     tty: true
     deploy:
