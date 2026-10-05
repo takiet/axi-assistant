@@ -3,9 +3,10 @@ name = "aec-crew"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "crewai[litellm]>=1.15.23",
+    "crewai[anthropic,litellm,openai]==1.15.23",
     "fastapi>=0.141.1",
     "livekit-agents[openai,silero]>=1.8.3",
+    "openai==2.54.0",
     "uvicorn>=0.54.0",
 ]
 
