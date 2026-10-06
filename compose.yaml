@@ -9,6 +9,7 @@ services:
     networks:
       - app_net
       - egress_net
+      - inference_net
     volumes:
       - ${HOME}/Verkstad/axi-assistant:/app
       - crewai_data:/data/crewai
@@ -29,11 +30,44 @@ services:
         limits:
           memory: 4G
           cpus: "2.0"
+  vllm-stt:
+    image: nvcr.io/nvidia/vllm:26.08-py3
+    environment: 
+      - HF_HUB_OFFLINE: 1
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    container_name: vllm-stt
+    restart: no
+    ipc: host
+    volumes:
+      - ${HOME}/.cache/huggingface:/root/.cache/huggingface
+      - ${HOME}/.cache/vllm-stt:/root/.cache/vllm
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: >
+      vllm serve
+      Qwen/Qwen3-ASR-1.7B
+      --served-model-name stt
+      --max-num-seqs 2
+      --max-model-len 2048
+      --gpu-memory-utilization 0.08
+      --host 0.0.0.0
+      --port 6180
+    networks:
+      - inference_net
 
 networks:
   app_net:
     internal: true
   egress_net: {}
+  inference_net:
+    internal: true
 
 volumes: 
   crewai_data:
