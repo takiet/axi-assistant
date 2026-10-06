@@ -33,7 +33,7 @@ services:
   vllm-stt:
     image: nvcr.io/nvidia/vllm:26.08-py3
     environment: 
-      - HF_HUB_OFFLINE: 1
+      - HF_HUB_OFFLINE: "1"
     ulimits:
       memlock: -1
       stack: 67108864
