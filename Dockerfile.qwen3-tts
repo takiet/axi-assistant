@@ -60,4 +60,5 @@ WORKDIR /app
 WORKDIR /app/tts_server
 EXPOSE 6280
 
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "6280"]
+#CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "6280"]
+CMD ["bash"]
