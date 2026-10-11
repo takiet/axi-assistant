@@ -76,13 +76,18 @@ services:
       stack: 67108864
     environment:
       HF_HUB_OFFLINE: "1"
-      TTS_MODEL: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+      TTS_MODEL: /models/tts/Qwen3-TTS-12Hz-1.7B-CustomVoice
       TTS_SPEAKER: Vivian
     volumes:
+      - /opt/models/tts:/models/tts:ro
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
       - ${HOME}/Verkstad/axi-assistant:/app
     networks:
       - inference_net
+    command: >
+      uvicorn server:app
+      --host 0.0.0.0
+      --port 6280
 
 networks:
   app_net:
