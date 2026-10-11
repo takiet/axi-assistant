@@ -66,6 +66,8 @@ services:
       context: .
       dockerfile: Dockerfile.qwen3-tts
     container_name: tts
+    stdin_open: true
+    tty: true
     restart: no
     runtime: nvidia
     ipc: host
