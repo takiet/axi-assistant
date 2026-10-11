@@ -55,7 +55,7 @@ RUN python3 -m pip install \
     annotated-doc==0.0.5
 
 WORKDIR /app
-COPY tts_server /app/tts_server
+#COPY tts_server /app/tts_server
 
 WORKDIR /app/tts_server
 EXPOSE 6280
