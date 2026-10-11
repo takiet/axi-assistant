@@ -1,0 +1,146 @@
+{
+  "summary": {
+    "label": "qwen3-asr-1.7b-prompt",
+    "n": 11,
+    "cer_mean": 0.08296249205340114,
+    "cer_quiet": 0.08296249205340114,
+    "cer_noisy": NaN,
+    "camera_acc": 0.75,
+    "latency_mean": 0.16869848827429285,
+    "rtf_mean": 0.09366199921864765
+  },
+  "rows": [
+    {
+      "case": "001_show_entrance",
+      "file": "001_show_entrance.wav",
+      "condition": "quiet",
+      "ref": "入口カメラを表示して",
+      "hyp": "入り口カメラを表示して。",
+      "cer": 0.1,
+      "latency": 0.18420572200557217,
+      "rtf": 0.09962563414798103,
+      "camera_id": "cam-entrance-01",
+      "camera_ok": true
+    },
+    {
+      "case": "002_check_person",
+      "file": "002_check_person.wav",
+      "condition": "quiet",
+      "ref": "入口カメラに人がいる？",
+      "hyp": "入り口カメラに人がいますか。",
+      "cer": 0.4,
+      "latency": 0.2244933879992459,
+      "rtf": 0.1140151159543736,
+      "camera_id": "cam-entrance-01",
+      "camera_ok": true
+    },
+    {
+      "case": "004_ptz_left",
+      "file": "004_ptz_left.wav",
+      "condition": "quiet",
+      "ref": "カメラを左に向けて",
+      "hyp": "カメラを左に向けて。",
+      "cer": 0.0,
+      "latency": 0.12611740500142332,
+      "rtf": 0.08079377847863013,
+      "camera_id": null,
+      "camera_ok": null
+    },
+    {
+      "case": "005_unknown_camera",
+      "file": "005_unknown_camera.wav",
+      "condition": "quiet",
+      "ref": "屋上カメラを表示して",
+      "hyp": "屋上カメラを表示して。",
+      "cer": 0.0,
+      "latency": 0.1482835140050156,
+      "rtf": 0.08125216808685885,
+      "camera_id": null,
+      "camera_ok": null
+    },
+    {
+      "case": "006_chitchat",
+      "file": "006_chitchat.wav",
+      "condition": "quiet",
+      "ref": "こんにちは",
+      "hyp": "こんにちは。",
+      "cer": 0.0,
+      "latency": 0.08069944400631357,
+      "rtf": 0.09077765490152682,
+      "camera_id": null,
+      "camera_ok": null
+    },
+    {
+      "case": "007_show_parking",
+      "file": "007_show_parking.wav",
+      "condition": "quiet",
+      "ref": "駐車場カメラを表示して",
+      "hyp": "駐車場カメラを表示して。",
+      "cer": 0.0,
+      "latency": 0.17756567199830897,
+      "rtf": 0.0901815900362797,
+      "camera_id": "cam-parking-01",
+      "camera_ok": true
+    },
+    {
+      "case": "008_show_loading",
+      "file": "008_show_loading.wav",
+      "condition": "quiet",
+      "ref": "搬入口カメラを表示して",
+      "hyp": "半入り口カメラを表示して。",
+      "cer": 0.18181818181818182,
+      "latency": 0.17148071200062986,
+      "rtf": 0.08024444724377512,
+      "camera_id": "cam-loading-01",
+      "camera_ok": false
+    },
+    {
+      "case": "009_alias_genkan",
+      "file": "009_alias_genkan.wav",
+      "condition": "quiet",
+      "ref": "玄関のカメラを見せて",
+      "hyp": "玄関のカメラを見せて。",
+      "cer": 0.0,
+      "latency": 0.16171737099648453,
+      "rtf": 0.09620426844263955,
+      "camera_id": "cam-entrance-01",
+      "camera_ok": true
+    },
+    {
+      "case": "010_alias_entrance",
+      "file": "010_alias_entrance.wav",
+      "condition": "quiet",
+      "ref": "エントランスを表示して",
+      "hyp": "エントランスを表示して。",
+      "cer": 0.0,
+      "latency": 0.16081199899781495,
+      "rtf": 0.09847767949549159,
+      "camera_id": "cam-entrance-01",
+      "camera_ok": true
+    },
+    {
+      "case": "011_alias_nisabaki",
+      "file": "011_alias_nisabaki.wav",
+      "condition": "quiet",
+      "ref": "荷捌き場のカメラを表示して",
+      "hyp": "にさばき場のカメラを表示して。",
+      "cer": 0.23076923076923078,
+      "latency": 0.22458081800141372,
+      "rtf": 0.10392548964173128,
+      "camera_id": "cam-loading-01",
+      "camera_ok": false
+    },
+    {
+      "case": "012_parking_person",
+      "file": "012_parking_person.wav",
+      "condition": "quiet",
+      "ref": "駐車場に車は停まっている？",
+      "hyp": "駐車場に車は停まっている。",
+      "cer": 0.0,
+      "latency": 0.19572732600499876,
+      "rtf": 0.09478416497583651,
+      "camera_id": "cam-parking-01",
+      "camera_ok": true
+    }
+  ]
+}

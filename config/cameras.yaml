@@ -1,0 +1,23 @@
+# カメラ ID の命名規則: cam-<場所>-<連番2桁>
+# name と aliases は次の 3 か所で共通の元データになる
+#   1. Mock VMS のカメラ一覧
+#   2. STT の語彙ヒント（keyterm）
+#   3. check_stt.py のカメラ名の判定 / Phase 3 の resolve_camera
+# aliases には「同じ意味の別表記」（入口 / 入り口 など）も必ず入れる
+
+cam-entrance-01:
+  name: 入口カメラ
+  aliases: [入口, 入り口, 出入口, 玄関, エントランス]
+  ptz: true
+
+cam-parking-01:
+  name: 駐車場カメラ
+  aliases: [駐車場, パーキング]
+  ptz: false
+
+cam-loading-01:
+  name: 搬入口カメラ
+  aliases: [搬入口, 搬入口, 荷捌き場, 荷さばき場, 荷捌場]
+  ptz: true
+
+# 「屋上」は意図的に登録しない（005_unknown_camera のテストで使う）

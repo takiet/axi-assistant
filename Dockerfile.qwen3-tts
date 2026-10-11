@@ -1,0 +1,63 @@
+FROM nvcr.io/nvidia/pytorch:26.09-py3
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    CUDA_HOME=/usr/local/cuda \
+    PYTHONUNBUFFERED=1
+    
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    cmake \
+    ninja-build \
+    sox \
+    libsox-dev \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python packages
+RUN python3 -m pip install --no-cache-dir \
+    numpy==2.1.0 \
+    transformers==4.57.3 \
+    accelerate==1.12.0 \
+    safetensors==0.8.0 \
+    einops \
+    soundfile==0.14.0 \
+    librosa==1.0.0 \
+    onnxruntime==1.31.0 \
+    sox
+
+# Building torchbuid that matches CUDA version in this image
+RUN git clone \
+    --depth 1 \
+    --branch v2.11.0 \
+    https://github.com/pytorch/audio.git \
+    /tmp/torchaudio-src \
+    && cd /tmp/torchaudio-src \
+    && BUILD_CUDA_CTC_DECODER=0 \
+       USE_CUDA=1 \
+       TORCH_CUDA_ARCH_LIST="11.0" \
+       python3 -m pip install \
+         -v \
+         --no-build-isolation \
+         --no-deps \
+         --no-cache-dir \
+         . \
+    && rm -rf /tmp/torchaudio-src
+
+# Qwen3-TTS
+RUN python3 -m pip install \
+    --no-cache-dir \
+    --no-deps \
+    qwen-tts==0.1.1 \
+    fastapi==0.143.0 \
+    uvicorn==0.54.0 \
+    starlette==1.7.0 \
+    annotated-doc==0.0.5
+
+WORKDIR /app
+COPY tts_server /app/tts_server
+
+WORKDIR /app/tts_server
+EXPOSE 6280
+
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "6280"]

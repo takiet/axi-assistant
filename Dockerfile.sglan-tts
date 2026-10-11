@@ -1,0 +1,29 @@
+FROM nvcr.io/nvidia/sglang:26.09-py3
+
+ENV HF_HOME=/root/.cache/huggingface
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git \
+        sox \
+        libsox-dev \
+        libsox-fmt-all \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+
+RUN git clone \
+    https://github.com/sgl-project/sglang-omni.git \
+    /opt/sglang-omni
+
+WORKDIR /opt/sglang-omni
+
+# 依存関係の自動更新を避けてインストールする。
+# 実際に必要な追加依存関係は、ベース環境を確認してから調整する。
+RUN python3 -m pip install --no-deps sox einops && \
+    python3 -m pip install --no-deps qwen-tts==0.1.1
+
+EXPOSE 8000
+
+CMD ["bash"]

@@ -1,0 +1,102 @@
+defaults:
+  runs: 5            # 同じケースを5回実行する（Phase 1-C 以降の回帰テストで使う）
+  pass_rate: 0.8     # 5回中4回以上成功で合格
+
+# 音声ファイルの命名規則
+#   <ケースID>.wav          … 静かな環境
+#   <ケースID>_b.wav        … 別の話者 / 言い方（静かな環境）
+#   <ケースID>_noisy.wav    … 雑音あり（ファイル名に "noisy" を含めると雑音条件として集計される）
+# audio を省略した場合は <ケースID>.wav を使う
+#
+# transcript は「実際に話した内容」をそのまま書く（表記は漢字・ひらがなを話した形に合わせる）
+# expect.args.camera_id があるケースだけ、カメラ名の正誤を判定する
+
+cases:
+  001_show_entrance:
+    #audio: [001_show_entrance.wav, 001_show_entrance_noisy.wav]
+    transcript: 入口カメラを表示して
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-entrance-01 }
+
+  002_check_person:
+    #audio: [002_check_person.wav, 002_check_person_noisy.wav]
+    transcript: 入口カメラに人がいる？
+    expect:
+      route: vms
+      tool: analyze_image
+      args: { camera_id: cam-entrance-01 }   # question は自由文なので完全一致では検証しない
+
+#  003_person_activity:
+#    transcript: 入口で人が立ち止まっている？
+#    expect:
+#      route: vms
+#      tool: analyze_video
+#      args: { camera_id: cam-entrance-01 }
+
+  004_ptz_left:
+    #audio: [004_ptz_left.wav, 004_ptz_left_noisy.wav]
+    transcript: カメラを左に向けて
+    expect:
+      route: vms
+      tool: ptz
+      args: { direction: left }              # camera_id なし（Phase 6 の会話状態で「現在のカメラ」を解決する）
+
+  005_unknown_camera:
+    transcript: 屋上カメラを表示して
+    expect:
+      route: vms
+      tool: show_camera                      # 存在しないカメラ。Tool はエラーを返し、Agent が候補を提示する
+      # 詳細な期待値（エラー時の応答など）は Phase 1-C で決める
+
+  006_chitchat:
+    #audio: [006_chitchat.wav, 006_chitchat_noisy.wav]
+    transcript: こんにちは
+    expect:
+      route: direct
+      tool: null                             # Tool を呼ばないこと
+
+  # --- 以下は STT の評価のために追加するケース（別名・他のカメラ） ---
+  007_show_parking:
+    transcript: 駐車場カメラを表示して
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-parking-01 }
+
+  008_show_loading:
+    #audio: [008_show_loading.wav, 008_show_loading_noisy.wav]
+    transcript: 搬入口カメラを表示して
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-loading-01 }
+
+  009_alias_genkan:
+    transcript: 玄関のカメラを見せて
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-entrance-01 }
+
+  010_alias_entrance:
+    transcript: エントランスを表示して
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-entrance-01 }
+
+  011_alias_nisabaki:
+    transcript: 荷捌き場のカメラを表示して
+    expect:
+      route: vms
+      tool: show_camera
+      args: { camera_id: cam-loading-01 }
+
+  012_parking_person:
+    transcript: 駐車場に車は停まっている？
+    expect:
+      route: vms
+      tool: analyze_image
+      args: { camera_id: cam-parking-01 }
