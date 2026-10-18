@@ -8,7 +8,7 @@ from crewai import LLM
 from openai import OpenAI
 
 STT = OpenAI(base_url=os.environ.get("STT_BASE_URL", "http://vllm-stt:6180/v1"), api_key="dummy", timeout=120)
-TTS = OpenAI(base_url=os.environ.get("TTS_BASE_URL", "http://tts:6280/v1"), api_key="dummy", timeout=120)
+TTS = OpenAI(base_url=os.environ.get("TTS_BASE_URL", "http://faster-tts:6280/v1"), api_key="dummy", timeout=120)
 LLM_ = LLM(
     model=os.environ["ORCHESTRATOR_MODEL"],
     base_url=os.environ["ORCHESTRATOR_BASE_URL"],
@@ -51,4 +51,10 @@ def run(wav_path: str, out_path: str) -> dict:
 
 
 if __name__ == "__main__":
-    run(sys.argv[1], sys.argv[2])
+    import statistics
+    n = int(os.environ.get("RUNS", "5"))
+    results = [run(sys.argv[1], f"{sys.argv[2]}.{i}.wav") for i in range(n)]
+    print("\n=== 1 回目を除く ===")
+    for k in ("stt", "llm", "tts", "total"):
+        v = [r[k] for r in results[1:]]
+        print(f"{k:6s} median={statistics.median(v):.2f}s  min={min(v):.2f}  max={max(v):.2f}")

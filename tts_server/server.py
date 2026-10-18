@@ -3,6 +3,7 @@ import io
 import logging
 import os
 import threading
+import asyncio
 import time
 from contextlib import asynccontextmanager
 
@@ -38,13 +39,61 @@ def synth(text: str, speaker: str):
     wav = wavs[0] if isinstance(wavs, (list, tuple)) else wavs
     return wav, sr
 
+
+def start_stream(text: str, speaker: str):
+    loop = asyncio.get_running_loop()
+    q: asyncio.Queue = asyncio.Queue()
+    cancel = threading.Event()
+    t0 = time.perf_counter()                                   # ★ 経過時間の計測
+
+    def worker():
+        n_chunks = 0                                           # ★ try の前で初期化
+        got_lock = False                                       # ★ ロックを取れたか
+        try:
+            while not lock.acquire(timeout=0.1):               # 待機中の切断も検知する
+                if cancel.is_set():
+                    return                                     # ★ 取れずに終了（外側の finally は実行される）
+            got_lock = True
+            try:
+                for chunk, sr, *_ in state["model"].generate_custom_voice_streaming(
+                        text=text, speaker=speaker, language=LANGUAGE,
+                        max_new_tokens=MAX_NEW, chunk_size=CHUNK, instruct=INSTRUCT):
+                    if cancel.is_set():
+                        break                                  # 生成を打ち切る
+                    n_chunks += 1                              # ★ カウント
+                    a = np.asarray(chunk, dtype=np.float32).reshape(-1)
+                    pcm = (np.clip(a, -1.0, 1.0) * 32767).astype("<i2").tobytes()
+                    loop.call_soon_threadsafe(q.put_nowait, pcm)
+            finally:
+                lock.release()                                 # 内側: ロックの解放
+        finally:                                               # 外側: 終了の合図とログ
+            log.info("stream worker done: chunks=%d locked=%s cancelled=%s elapsed=%.2fs",
+                     n_chunks, got_lock, cancel.is_set(), time.perf_counter() - t0)   # ★
+            loop.call_soon_threadsafe(q.put_nowait, None)
+
+    threading.Thread(target=worker, daemon=True).start()
+
+    async def body():
+        try:
+            while (b := await q.get()) is not None:
+                yield b
+        finally:
+            cancel.set()                                       # 切断・キャンセルでも必ず実行される
+            log.info("stream body closed")                     # ★ HTTP 側が閉じた記録
+    return body()
+
 def pcm_stream(text: str, speaker: str):
-    with lock:                                                  # CUDA graph は 1 リクエストずつ
-        for chunk, sr, *_ in state["model"].generate_custom_voice_streaming(
-                text=text, speaker=speaker, language=LANGUAGE,
-                max_new_tokens=MAX_NEW, chunk_size=CHUNK):
-            a = np.asarray(chunk, dtype=np.float32).reshape(-1)
-            yield (np.clip(a, -1.0, 1.0) * 32767).astype("<i2").tobytes()
+    n, t0 = 0, time.perf_counter()
+    try:
+        with lock:
+            for chunk, sr, *_ in state["model"].generate_custom_voice_streaming(
+                    text=text, speaker=speaker, language=LANGUAGE,
+                    max_new_tokens=MAX_NEW, chunk_size=CHUNK):
+                n += 1
+                a = np.asarray(chunk, dtype=np.float32).reshape(-1)
+                yield (np.clip(a, -1.0, 1.0) * 32767).astype("<i2").tobytes()
+    finally:
+        log.info("stream closed: chunks=%d elapsed=%.2fs", n, time.perf_counter() - t0)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,11 +123,10 @@ class SpeechRequest(BaseModel):
 def health():
     return {"status": "ok" if "model" in state else "loading"}
 
-
 @app.post("/v1/audio/speech")
-def speech(req: SpeechRequest):
+async def speech(req: SpeechRequest):
     if req.stream:
-        return StreamingResponse(pcm_stream(req.input, req.voice or SPEAKER),
+        return StreamingResponse(start_stream(req.input, req.voice or SPEAKER),
                                  media_type="audio/pcm", headers={"X-Sample-Rate": "24000"})
     
     start = time.perf_counter()
