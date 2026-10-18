@@ -6,12 +6,15 @@ import threading
 import time
 from contextlib import asynccontextmanager
 
+import numpy as np
 import soundfile as sf
 import torch
 from fastapi import FastAPI
 from fastapi.responses import Response
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from qwen_tts import Qwen3TTSModel
+#from qwen_tts import Qwen3TTSModel
+from faster_qwen3_tts import FasterQwen3TTS
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("tts")
@@ -21,24 +24,36 @@ SPEAKER = os.environ.get("TTS_SPEAKER", "Vivian")
 LANGUAGE = os.environ.get("TTS_LANGUAGE", "Japanese")
 INSTRUCT = "自然で落ち着いた話し方で"
 
+MAX_SEQ_LEN = int(os.environ.get("TTS_MAX_SEQ_LEN", "2048"))
+MAX_NEW = int(os.environ.get("TTS_MAX_NEW_TOKENS", "512"))   # about 40 s (12.5 frame per sec) to prevent from exhausting
+CHUNK = int(os.environ.get("TTS_CHUNK_SIZE", "4"))
+
 state: dict = {}
 lock = threading.Lock()          # GPU one request once
-
 
 def synth(text: str, speaker: str):
     with lock:
         wavs, sr = state["model"].generate_custom_voice(
-            text=text, language=LANGUAGE, speaker=speaker, instruct=INSTRUCT
-        )
-    return wavs[0], sr
+            text=text, speaker=speaker, language=LANGUAGE, max_new_tokens=MAX_NEW, instruct=INSTRUCT)
+    wav = wavs[0] if isinstance(wavs, (list, tuple)) else wavs
+    return wav, sr
 
+def pcm_stream(text: str, speaker: str):
+    with lock:                                                  # CUDA graph は 1 リクエストずつ
+        for chunk, sr, *_ in state["model"].generate_custom_voice_streaming(
+                text=text, speaker=speaker, language=LANGUAGE,
+                max_new_tokens=MAX_NEW, chunk_size=CHUNK):
+            a = np.asarray(chunk, dtype=np.float32).reshape(-1)
+            yield (np.clip(a, -1.0, 1.0) * 32767).astype("<i2").tobytes()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    state["model"] = Qwen3TTSModel.from_pretrained(
-        MODEL_NAME, device_map="cuda:0", dtype=torch.bfloat16,
-        attn_implementation="sdpa",
-    )
+    state["model"] = FasterQwen3TTS.from_pretrained(MODEL_NAME, max_seq_len=MAX_SEQ_LEN)
+    state["model"].warmup(prefill_len=100)
+    #state["model"] = Qwen3TTSModel.from_pretrained(
+    #    MODEL_NAME, device_map="cuda:0", dtype=torch.bfloat16,
+    #    attn_implementation="sdpa",
+    #)
     synth("こんにちは。", SPEAKER)                          # Warm up
     log.info("ready. gpu_mem_allocated=%.2fGB", torch.cuda.memory_allocated() / 1e9)
     yield
@@ -52,8 +67,9 @@ class SpeechRequest(BaseModel):
     input: str
     voice: str | None = None
     response_format: str = "wav"
+    stream: bool = False
 
-
+    
 @app.get("/health")
 def health():
     return {"status": "ok" if "model" in state else "loading"}
@@ -61,6 +77,10 @@ def health():
 
 @app.post("/v1/audio/speech")
 def speech(req: SpeechRequest):
+    if req.stream:
+        return StreamingResponse(pcm_stream(req.input, req.voice or SPEAKER),
+                                 media_type="audio/pcm", headers={"X-Sample-Rate": "24000"})
+    
     start = time.perf_counter()
     wav, sr = synth(req.input, req.voice or SPEAKER)
     elapsed = time.perf_counter() - start

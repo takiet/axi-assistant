@@ -1,9 +1,15 @@
 FROM nvcr.io/nvidia/pytorch:26.09-py3
 
+ARG TRANSFORMERS_VERSION=5.15.1
+ARG HF_HUB_VERSION=1.33.0
+ARG FASTER_SPEC=faster-qwen3-tts==0.5.4
+
 ENV DEBIAN_FRONTEND=noninteractive \
     CUDA_HOME=/usr/local/cuda \
     PYTHONUNBUFFERED=1
-    
+
+WORKDIR /app
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     build-essential \
@@ -13,18 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsox-dev \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Python packages
-RUN python3 -m pip install --no-cache-dir \
-    numpy==2.1.0 \
-    transformers==4.57.3 \
-    accelerate==1.12.0 \
-    safetensors==0.8.0 \
-    einops \
-    soundfile==0.14.0 \
-    librosa==1.0.0 \
-    onnxruntime==1.31.0 \
-    sox
 
 # Building torchbuid that matches CUDA version in this image
 RUN git clone \
@@ -44,21 +38,37 @@ RUN git clone \
          . \
     && rm -rf /tmp/torchaudio-src
 
-# Qwen3-TTS
-RUN python3 -m pip install \
-    --no-cache-dir \
-    --no-deps \
-    qwen-tts==0.1.1 \
+# Constraints for NVIDIA torch
+RUN python3 -c "import importlib.metadata as m; print('\n'.join(f'{n}=={m.version(n)}' for n in ('torch','torchaudio','torchvision','numpy')))" > /etc/pip-constraints.txt
+
+# Python packages
+RUN python3 -m pip install --no-cache-dir -c /etc/pip-constraints.txt \
+    "transformers==${TRANSFORMERS_VERSION}" \
+    "huggingface-hub==${HF_HUB_VERSION}" \
+    numpy==2.1.0 \
+    accelerate==1.12.0 \
+    safetensors==0.8.0 \
+    einops==0.8.2 \
+    soundfile==0.14.0 \
+    librosa==1.0.0 \
+    onnxruntime==1.31.0 \
+    sox==1.5.0
+    
+# Qwen3-TTS (not install upstream qwen-tts)
+RUN python3 -m pip install --no-cache-dir --no-deps "qwen-tts-hf==0.1.1.post1"
+
+# faster-qwen3-tts
+RUN python3 -m pip install --no-cache-dir -c /etc/pip-constraints.txt "${FASTER_SPEC}"
+
+# API server
+RUN python3 -m pip install --no-cache-dir -c /etc/pip-constraints.txt \
     fastapi==0.143.0 \
-    uvicorn==0.54.0 \
     starlette==1.7.0 \
+    uvicorn==0.54.0 \
     annotated-doc==0.0.5
-
-WORKDIR /app
-#COPY tts_server /app/tts_server
-
+    
 WORKDIR /app/tts_server
 EXPOSE 6280
 
 #CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "6280"]
-CMD ["bash"]
+CMD ["/bin/bash"]

@@ -61,11 +61,11 @@ services:
       --port 6180
     networks:
       - inference_net
-  tts:
+  faster-tts:
     build:
       context: .
       dockerfile: Dockerfile.qwen3-tts
-    container_name: tts
+    container_name: faster-tts
     stdin_open: true
     tty: true
     restart: no
@@ -78,6 +78,8 @@ services:
       HF_HUB_OFFLINE: "1"
       TTS_MODEL: /models/tts/Qwen3-TTS-12Hz-1.7B-CustomVoice
       TTS_SPEAKER: Vivian
+      TTS_MAX_SEQ_LEN: "2048"
+      TTS_CHUNK_SIZE: "4"
     volumes:
       - /opt/models/tts:/models/tts:ro
       - ${HOME}/.cache/huggingface:/root/.cache/huggingface
