@@ -23,6 +23,7 @@ services:
       ORCHESTRATOR_API_KEY: ${ORCHESTRATOR_API_KEY}
       VMS_LLM_BASE_URL: ${VMS_LLM_BASE_URL}
       VMS_LLM_MODEL: ${VMS_LLM_MODEL}
+      MCP_URL: ${ACS_MCP_URL}
     stdin_open: true
     tty: true
     deploy:

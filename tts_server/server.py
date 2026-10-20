@@ -23,7 +23,7 @@ log = logging.getLogger("tts")
 MODEL_NAME = os.environ["TTS_MODEL"]
 SPEAKER = os.environ.get("TTS_SPEAKER", "Vivian")
 LANGUAGE = os.environ.get("TTS_LANGUAGE", "Japanese")
-INSTRUCT = "自然で落ち着いた話し方で"
+INSTRUCT = "少し早口ではっきりと話してください" #"自然で落ち着いた話し方で"
 
 MAX_SEQ_LEN = int(os.environ.get("TTS_MAX_SEQ_LEN", "2048"))
 MAX_NEW = int(os.environ.get("TTS_MAX_NEW_TOKENS", "512"))   # about 40 s (12.5 frame per sec) to prevent from exhausting
