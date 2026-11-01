@@ -11,7 +11,8 @@ SHORT = "確認します。"
 
 def payload(text, stream=False):
     return {"model": "tts", "voice": "Ono_Anna", "input": text,
-            "response_format": "wav", "stream": stream}
+            "response_format": "pcm", "stream": stream}
+    #"response_format": "wav", "stream": stream}
 
 
 def normal(text=SHORT, timeout=120):

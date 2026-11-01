@@ -1,0 +1,37 @@
+# say: 発話 / kind: 期待する結果の種類 / cameras: 実行されるはずのカメラ名（executed のときだけ）
+# executed 以外は、MCP が一度も呼ばれていないことも判定に含まれる
+cases:
+  - { say: 固定カメラを表示して, kind: executed, cameras: [固定カメラ] }
+  - { say: 固定カメラを見せて, kind: executed, cameras: [固定カメラ] }
+  - { say: 固定カメラの映像を出して, kind: executed, cameras: [固定カメラ] }
+  - { say: Q1656を表示して, kind: executed, cameras: [固定カメラ] }
+  - { say: ドームカメラを表示して, kind: executed, cameras: [ドームカメラ] }
+  - { say: ドームカメラのエリア2を表示して, kind: executed, cameras: [ドームカメラ エリア2] }
+  - { say: ドームのエリア2を映して, kind: executed, cameras: [ドームカメラ エリア2] }
+  - { say: エリア2を表示して, kind: executed, cameras: [ドームカメラ エリア2] }
+  # 複数のカメラを具体的に指定
+  - { say: 固定カメラとドームカメラを表示して, kind: executed, cameras: [固定カメラ, ドームカメラ] }
+  - { say: 固定カメラとドームカメラのエリア2を表示して, kind: executed, cameras: [固定カメラ, ドームカメラ エリア2] }
+  - { say: ドームカメラとドームカメラのエリア2を表示して, kind: executed, cameras: [ドームカメラ, ドームカメラ エリア2] }
+  - { say: 固定カメラとドームカメラとドームカメラのエリア2を表示して, kind: executed, cameras: [固定カメラ, ドームカメラ, ドームカメラ エリア2] }
+  # 実行しない場合
+  - { say: M3085を表示して, kind: ask_ambiguous }
+  - { say: 表示して, kind: ask_camera }
+  - { say: 屋上カメラを表示して, kind: not_registered }
+  - { say: 固定カメラと屋上カメラを表示して, kind: not_registered }   # 一部だけの実行をしないこと
+  - { say: カメラの一覧を教えて, kind: list }
+  - { say: どんなカメラがある？, kind: list }
+  - { say: カメラを左に向けて, kind: unsupported }
+  - { say: 録画を始めて, kind: unsupported }
+  - { say: こんにちは, kind: chat }
+  - { say: ありがとう, kind: chat }
+  - { say: 固定カメラを表示して, audio: vms_001.wav, kind: executed, cameras: [固定カメラ] }
+  - { say: ドームカメラを表示して, audio: vms_002.wav, kind: executed, cameras: [ドームカメラ] }
+  - { say: ドームカメラのエリア2を表示して, audio: vms_003.wav, kind: executed, cameras: [ドームカメラ エリア2] }
+  - { say: 固定カメラとドームカメラを表示して, audio: vms_004.wav, kind: executed, cameras: [固定カメラ, ドームカメラ] }
+  - { say: Q1656を表示して, audio: vms_005.wav, kind: executed, cameras: [固定カメラ] }
+  - { say: M3085を表示して, audio: vms_006.wav, kind: ask_ambiguous }
+  - { say: 屋上カメラを表示して, audio: vms_007.wav, kind: not_registered }
+  - { say: カメラの一覧を教えて, audio: vms_008.wav, kind: list }
+  - { say: カメラを左に向けて, audio: vms_009.wav, kind: unsupported }
+  - { say: こんにちは, audio: vms_010.wav, kind: chat }

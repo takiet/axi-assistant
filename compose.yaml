@@ -5,7 +5,13 @@ services:
       dockerfile: Dockerfile
     container_name: crewai-service
     restart: unless-stopped
-    command: bash
+    command: ["uvicorn", "vms_agent.api:api", "--host", "0.0.0.0", "--port", "20080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:20080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
       - app_net
       - egress_net

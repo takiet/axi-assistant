@@ -6,14 +6,14 @@ from pathlib import Path
 
 from mcp import ClientSession
 
-try:                                                       # SDK の版で関数名が違うため両対応
+try:                                                        # SDK の版で関数名が違うため両対応
     from mcp.client.streamable_http import streamablehttp_client as http_client
 except ImportError:
     from mcp.client.streamable_http import streamable_http_client as http_client
 
 MCP_URL = os.environ["MCP_URL"]
 SNAPSHOT = Path(os.environ.get("CAMERA_SNAPSHOT", "/data/crewai/cameras.json"))
-EXCLUDE_MODELS = {"Prerecorded video"}                     # 録画映像は対象外
+EXCLUDE_MODELS = {"Prerecorded video"}                      # 録画映像は対象外
 
 
 async def _fetch() -> list[dict]:
@@ -25,13 +25,15 @@ async def _fetch() -> list[dict]:
             return json.loads(result.content[0].text)
 
 
-def load() -> list[dict]:
+async def load_async() -> list[dict]:
     """取得してスナップショットを更新。失敗したら前回のスナップショットで代用"""
     try:
-        raw = asyncio.run(_fetch())
+        raw = await _fetch()
         cams = [{"id": c["CameraId"], "name": c["Name"], "model": c.get("Model")}
                 for c in raw if c.get("Model") not in EXCLUDE_MODELS]
-        SNAPSHOT.write_text(json.dumps(cams, ensure_ascii=False, indent=2))
+        tmp = SNAPSHOT.with_suffix(".tmp")
+        tmp.write_text(json.dumps(cams, ensure_ascii=False, indent=2))
+        os.replace(tmp, SNAPSHOT)
         return cams
     except Exception:
         if SNAPSHOT.exists():
@@ -39,5 +41,6 @@ def load() -> list[dict]:
         raise
 
 
-def as_table(cams: list[dict]) -> str:
-    return "\n".join(f"- {c['name']}（ID: {c['id']}、型番: {c['model']}）" for c in cams)
+def load() -> list[dict]:
+    """同期版（スクリプト用）。すでにイベントループが動いている中では、load_async を使う"""
+    return asyncio.run(load_async())

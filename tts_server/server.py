@@ -125,7 +125,7 @@ def health():
 
 @app.post("/v1/audio/speech")
 async def speech(req: SpeechRequest):
-    if req.stream:
+    if req.stream or req.response_format == "pcm":
         return StreamingResponse(start_stream(req.input, req.voice or SPEAKER),
                                  media_type="audio/pcm", headers={"X-Sample-Rate": "24000"})
     

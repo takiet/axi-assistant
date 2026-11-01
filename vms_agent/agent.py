@@ -25,7 +25,7 @@ BACKSTORY = """あなたは監視カメラの音声アシスタントです。�
 
 def build_agent(cams: list[dict]) -> Agent:
     llm = LLM(
-        model=os.environ['VMS_LLM_MODEL'],
+        model=f"openai/{os.environ['VMS_LLM_MODEL']}",
         base_url=os.environ["VMS_LLM_BASE_URL"],
         api_key="dummy",
         temperature=0,
@@ -42,5 +42,5 @@ def build_agent(cams: list[dict]) -> Agent:
             cache_tools_list=True,
         )],
         max_iter=3,
-        verbose=True,
+        verbose=os.environ.get("AGENT_VERBOSE", "1") == "1",
     )
