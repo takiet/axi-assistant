@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from vms_agent import cameras, service
 
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("turn")
 state = {"cams": [], "refreshed_at": 0.0}
 turn_lock = asyncio.Lock()

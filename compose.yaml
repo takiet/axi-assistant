@@ -40,7 +40,7 @@ services:
           cpus: "2.0"
   vllm-stt:
     image: nvcr.io/nvidia/vllm:26.08-py3
-    environment: 
+    environment:
       HF_HUB_OFFLINE: "1"
     ulimits:
       memlock: -1
@@ -98,6 +98,23 @@ services:
       uvicorn server:app
       --host 0.0.0.0
       --port 6280
+  livekit-server:
+    image: livekit/livekit-server:v1.10.0
+    container_name: livekit-server
+    restart: unless-stopped
+    user: "1000:1000"
+    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${JETSON_LAN_IP}"]
+    environment:
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+      volumes:
+        - ${HOME}/Verkstad/axi-assistant/livekit/livekit.yaml:/etc/livekit.yaml:ro
+      ports:
+        - "${JETSON_LAN_IP}:7880:7880/tcp"
+        - "${JETSON_LAN_IP}:7881:7881/tcp"
+        - "${JETSON_LAN_IP}:7882:7882/udp"
+      networks: [ edge_net, app_net ]
 
 networks:
   app_net:
@@ -105,6 +122,7 @@ networks:
   egress_net: {}
   inference_net:
     internal: true
+  edge_net: {}
 
-volumes: 
+volumes:
   crewai_data:

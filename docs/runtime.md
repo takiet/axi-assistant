@@ -17,6 +17,16 @@
 | Doppler | project: `vms-voice-agent` / config: `dev`. Secrets are generated into `/opt/secrets/crewai.env` and passed to `crewai-service` only |
 | Development | MacBook (VS Code Remote-SSH). Used only for recording and audio conversion |
 | Where things run | The app and all inference servers run on the Jetson. Only the MCP server runs on a separate Windows machine (`axis12`) |
+| user | uid/gid 1000 |
+| LAN IP | env:JETSON_LAN_IP |
+| Livekit | livekit-agents: 1.8.9, livekit-server: 1.10.0, [TODO] -plugins-openai, -silero, -turn-detector |
+
+### 1.1 Test Terminal
+
+| Item | Details |
+|---|---|
+| Machine | Macbook Pro |
+| NodeJS | v24.20.0 |
 
 ---
 
@@ -34,7 +44,7 @@
 
 | Service | Image | Port | Role | Managed by |
 |---|---|---|---|---|
-| `crewai-service` | `vms/crewai-service:dev` (based on `python:3.12-slim`) | 8080 (127.0.0.1 only) | Application core (intent handling, name resolution, execution, replies) | Portainer stack `vms-voice-agent` |
+| `crewai-service` | `vms/crewai-service:dev` (based on `python:3.12-slim`) | 20080 (127.0.0.1 only) | Application core (intent handling, name resolution, execution, replies) | Portainer stack `vms-voice-agent` |
 | `vllm-llm` | `nvcr.io/nvidia/vllm:26.08-py3` (vLLM 0.27.1) | 6080 | Intent classification (LLM) | same |
 | `vllm-stt` | `nvcr.io/nvidia/vllm:26.08-py3` | 6180 | Speech recognition | same |
 | `tts` | `vms/tts-faster:dev` (based on `nvcr.io/nvidia/pytorch:26.09-py3`, built in-house) | 6190 | Speech synthesis | same |
@@ -66,9 +76,11 @@ Do not `pip install` inside a container. Use `-i` with `docker exec` when passin
 | Resources | Memory limit 4G, CPU 2.0 [Config] |
 | Networks | `app_net`, `egress_net`, `inference_net` |
 | Mounts | `vms_agent/`, `scripts/`, `tests/` (read-only), `tests/results/` (writable), `crewai_data` → `/data/crewai` |
-| Environment variables (non-secret) | `VMS_LLM_BASE_URL` (matches `--port 6080` of `vllm-llm`), `VMS_LLM_MODEL` [TODO], `MCP_URL=http://axis12:7080/mcp`, `PYTHONPATH=/app`, `FUZZY_MIN` (default 0.6), `FUZZY_MARGIN` (default 0.1) |
+| Environment variables (non-secret) | `VMS_LLM_BASE_URL` (matches `--port 6080` of `vllm-llm`), `VMS_LLM_MODEL` [TODO], `MCP_URL=http://axis12:7080/mcp`, `PYTHONPATH=/app`, `FUZZY_MIN` (default 0.6), `FUZZY_MARGIN` (default 0.1), `MCP_TIMEOUT_S` (default 5) |
 | Environment variables (Doppler) | `ORCHESTRATOR_MODEL`, `ORCHESTRATOR_BASE_URL` (no trailing `/v1`), `ORCHESTRATOR_API_KEY`. **Not used in the current processing path** (only connectivity was verified in Phase 0) |
 | Snapshot | `/data/crewai/cameras.json` (a copy of the camera list fetched from ACS; do not edit by hand) |
+| Execution user | 1000 |
+| Timeouts | LLM client (intent.py): timeout=5, max_retries=0, MCP Calling (mcp_client.py): asyncio.wait_for (5s), Camera list (cameras.py): 10s |
 
 ### 3.2 `vllm-llm`
 
