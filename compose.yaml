@@ -108,13 +108,13 @@ services:
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
       LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
-      volumes:
-        - ${HOME}/Verkstad/axi-assistant/livekit/livekit.yaml:/etc/livekit.yaml:ro
-      ports:
-        - "${JETSON_LAN_IP}:7880:7880/tcp"
-        - "${JETSON_LAN_IP}:7881:7881/tcp"
-        - "${JETSON_LAN_IP}:7882:7882/udp"
-      networks: [ edge_net, app_net ]
+    volumes:
+      - ${HOME}/Verkstad/axi-assistant/livekit/livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "${JETSON_LAN_IP}:7880:7880/tcp"
+      - "${JETSON_LAN_IP}:7881:7881/tcp"
+      - "${JETSON_LAN_IP}:7882:7882/udp"
+    networks: [ edge_net, app_net ]
 
 networks:
   app_net:
