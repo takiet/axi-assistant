@@ -103,7 +103,7 @@ services:
     container_name: livekit-server
     restart: unless-stopped
     user: "1000:1000"
-    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${JETSON_LAN_IP}"]
+    command: ["--config", "/etc/livekit.yaml", "--node-ip", "${JETSON_LAN_IP}", "--keys", "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"]
     environment:
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
